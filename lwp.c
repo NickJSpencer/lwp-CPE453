@@ -73,7 +73,7 @@ void remove(thread victim) {
 thread next() {
     /* If there are no nodes in the list, simply return */
     if (!head) {
-        return;
+        return NULL;
     }
 
     /* If a current node hasn't been set yet or if the current node is the
