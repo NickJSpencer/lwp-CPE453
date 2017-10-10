@@ -39,7 +39,7 @@ void admit(thread new) {
 }
 
 void remove(thread victim) {
-    /* TODO : catch for if victim == current?
+    /* TODO : catch for if victim == current? */
 
     /* If head hasn't been initialized yet, just return */
     if (!head) {
