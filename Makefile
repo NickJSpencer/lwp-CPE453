@@ -9,9 +9,9 @@ clean:
 mynums: numbersmain.o libLWP.a
 	$(LD) $(LDFLAGS) -o mynums numbersmain.o -L. -lLWP
 
-numbersmain.o: lwp.h
+numbersmain.o: lwp.h 
 
-libLWP.a: lwp.c
+libLWP.a: lwp.c scheduler.h
 	gcc -c lwp.c
 	ar r libLWP.a lwp.o
 	rm lwp.o
