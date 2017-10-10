@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 /***********************************************/
-/* Default round-robin scheduler               *
- * Uses a linked list to keep track of threads */
+/* Default round-robin scheduler               */
+/* Uses a linked list to keep track of threads */
 /***********************************************/
 typedef struct Node {
     thread t;
@@ -38,12 +38,48 @@ void admit(thread new) {
     temp->next->next = NULL;
 }
 
-void remove(thread v) {
-	// TODO
+void remove(thread victim) {
+    /* TODO : catch for if victim == current?
+
+    /* If head hasn't been initialized yet, just return */
+    if (!head) {
+        return;
+    }
+
+    /* Catch for head collision */
+    if (head->t->tid == victim->tid) {
+        Node *temp = head->next;
+        free(head);
+        head = temp;
+        return;
+    }
+
+    /* Iterate through the linked list while there is no collision */
+    Node *temp = head;
+    while (temp->next && temp->next->t->tid != victim->tid) {
+        temp = temp->next;
+    }
+
+    /* If a collision occurred at some point in the list */
+    if (temp->next && temp->next->t->tid == victim->tid) {
+        Node *next = temp->next->next;
+        free(temp->next);
+        temp->next = next;
+    }
 }
 
 thread next() {
-	// TODO
+    /* If current hasn't been initialized yet or if we reached the
+     * end of the linked list, set current to the head of the linked 
+     * list */
+    if (!current || !current->next) {
+        current = head;
+    }
+    else {
+        current = current->next;
+    }
+    
+    return current->t;
 }
 
 
@@ -68,6 +104,7 @@ void lwp_yield() {
 }
 
 void lwp_start() {
+    /* Initialize default scheduler */
     rsched = malloc(sizeof(scheduler));
     rsched->init = &init;
     rsched->shutdown = NULL;
@@ -78,6 +115,7 @@ void lwp_start() {
 
 void lwp_stop() {
     // TODO
+    // TODO : catch for if stop is called before start
 }
 
 void lwp_set_scheduler(scheduler sched) {
