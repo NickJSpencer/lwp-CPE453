@@ -54,29 +54,31 @@ void remove(thread victim) {
         return;
     }
 
-    /* Iterate through the linked list while there is no collision */
+    /* Iterate through the linked list */
     Node *temp = head;
-    while (temp->next && temp->next->t->tid != victim->tid) {
-        temp = temp->next;
-    }
+    while (temp->next) {
+        /* If we find the collision, delete the node and exit */
+        if (temp->next->t->tid == victim->tid) {
+            Node *next = temp->next->next;
+            free(temp->next);
+            temp->next = next;
+            break;
+        }
 
-    /* If a collision occurred at some point in the list */
-    if (temp->next && temp->next->t->tid == victim->tid) {
-        Node *next = temp->next->next;
-        free(temp->next);
-        temp->next = next;
+        /* Otherwise continue iterating through the linked list */
+        temp = temp->next;
     }
 }
 
 thread next() {
-    /* If current hasn't been initialized yet or if we reached the
-     * end of the linked list, set current to the head of the linked 
+    /* If there are no nodes in the list, simply return */
+    if (!head) {
+        return;
+    }
+
+    /* If a current node hasn't been set yet or if the current node is the
+     * tail of the linked list, set current to the head of the linked 
      * list */
-    // This should probably be a cyclical list.. if current or head is NULL, this will crash.
-    // Potential fix:
-    // if (!current) {
-    // 	 return NULL;
-    // }
     if (!current || !current->next) {
         current = head;
     }
