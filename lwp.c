@@ -72,6 +72,11 @@ thread next() {
     /* If current hasn't been initialized yet or if we reached the
      * end of the linked list, set current to the head of the linked 
      * list */
+    // This should probably be a cyclical list.. if current or head is NULL, this will crash.
+    // Potential fix:
+    // if (!current) {
+    // 	 return NULL;
+    // }
     if (!current || !current->next) {
         current = head;
     }
