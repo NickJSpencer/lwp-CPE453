@@ -5,15 +5,15 @@
 #include <stdio.h>
 
 static struct scheduler rsched = {NULL, NULL, &rr_admit, &rr_remove, &rr_next};
-static unsigned long thread_count = 0;
+static unsigned long threadCount = 0;
 static thread headThread = NULL;
-static thread currThread = NULL;
+static rfile origRegs;
 
 tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
 
     /* Create thread as local object */
     thread t = malloc(sizeof(context));
-    t->tid = thread_count++;
+    t->tid = threadCount++;
     t->stack = malloc(size*sizeof(unsigned long));
     t->stacksize = size;
 
@@ -63,7 +63,10 @@ void lwp_yield() {
 }
 
 void lwp_start() {
-    // TODO
+    thread next = rsched.next();
+    if (next) {
+        swap_rfiles(&origRegs, &next->state);
+    }
 }
 
 void lwp_stop() {
