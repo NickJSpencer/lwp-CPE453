@@ -16,10 +16,9 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
     /* Set up thread's rfile */
     t->state.rdi = (unsigned long) arg;
     t->state.rbp = (unsigned long) t->stack + (unsigned long) size;
-    t->state.rsp = t->state.rbp;
+    unsigned long *sp = &t->state.rbp;
 
     /* Push return address */
-    unsigned long *sp = &t->state.rsp;
     sp--;
     *sp = (unsigned long) lwp_exit;
 
@@ -27,6 +26,9 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
      * in lwp */
     sp--;
     *sp = (unsigned long) 0;
+
+    /* Set stack pointer in rfile */
+    t->state.rsp = (unsigned long) sp;
 
     /* Send thread context to scheduler */
     rsched->admit(t);
