@@ -70,7 +70,8 @@ void  lwp_yield(void);                  /* yield CPU for another lwp */
 void  lwp_start(void);                  /* start lwp system */
 void  lwp_stop(void);                   /* stop lwp system */
 void  lwp_set_scheduler(scheduler fun); /* install a new scheduling function */
-scheduler lwp_get_scheduler(void);      /* find out what the current schedular function is */
+scheduler lwp_get_scheduler(void);      /* find out what the current schedular
+ function is */
 thread tid2thread(tid_t tid);           /* map a thread id to a context */
 
 /* Macros for stack pointer manipulation:

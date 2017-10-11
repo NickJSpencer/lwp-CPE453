@@ -13,7 +13,7 @@ typedef struct Node {
 static Node *head = NULL;
 static Node *current = NULL;
 
-void admit(thread new) {
+void rr_admit(thread new) {
     /* Initialize linked list if it hasn't been initlialized yet */
     if(!head) {
         head = malloc(sizeof(Node));
@@ -33,7 +33,7 @@ void admit(thread new) {
     temp->next->next = NULL;
 }
 
-void remove(thread victim) {
+void rr_remove(thread victim) {
     /* TODO : catch for if victim == current? */
 
     /* If head hasn't been initialized yet, just return */
@@ -65,7 +65,7 @@ void remove(thread victim) {
     }
 }
 
-thread next() {
+thread rr_next() {
     /* If there are no nodes in the list, simply return */
     if (!head) {
         return NULL;
