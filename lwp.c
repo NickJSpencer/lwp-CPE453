@@ -6,50 +6,47 @@
 
 static struct scheduler rsched = {NULL, NULL, &rr_admit, &rr_remove, &rr_next};
 static unsigned long thread_count = 0;
-static thread head_thread = NULL;
-static thread current_thread = NULL;
+static thread head= NULL;
+static thread current= NULL;
 
 tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
+
     /* Create thread as local object */
     thread t = malloc(sizeof(context));
     t->tid = thread_count++;
     t->stack = malloc(size*sizeof(unsigned long));
     t->stacksize = size;
 
+    /* Set up stack */
+    unsigned long *sp = t->stack + stacksize;
+    sp--;
+    *sp = (unsigned long) lwp_exit; /* return address */
+    sp--;
+    *sp = (unsigned long) fun;      /* thread's function */
+    
     /* Set up thread's rfile */
     t->state.rdi = (unsigned long) arg;
-    t->state.rbp = (unsigned long) t->stack + (unsigned long) size;
-    unsigned long *sp = &t->state.rbp;
-    
-    /* Push return address */
     sp--;
-    *sp = (unsigned long) lwp_exit;
-
-    /* Push old rbp -- this is a garbage value (?) because it's never used in
-     * in lwp */
-    sp--;
-    *sp = (unsigned long) 0;
-
-    /* Set stack pointer in rfile */
+    t->state.rbp = (unsigned long) sp;
     t->state.rsp = (unsigned long) sp;
+    t->state.fxsave = FPU_INIT;
     
-    /* if this is the only thread, it is now the head */
-    if (!head_thread) {
-        head_thread = t;
+    /* Set up linked list of threads */
+    if (!head) {
+        head= t;
     }
-    /* else, assign new thread to the end of the list */
     else {
-        current_thread = head_thread;
-        while (current_thread->lib_one != NULL) {
-            current_thread = current_thread->lib_one;
+        thread *temp = head;
+        while (!temp->lib_one) {
+            temp = temp->lib_one;
         }
-        current_thread->lib_one = t;
+        temp->lib_one = t;
     }
 
     /* Send thread context to scheduler */
     rsched.admit(t);
     
-    /* return thread id */
+    /* Return thread id */
     return t->tid;
 }
 
@@ -83,22 +80,21 @@ scheduler lwp_get_scheduler() {
 }
 
 thread tid2thread(tid_t tid) {
-    /* if there are no threads or tid is not valid */
-    if (!head_thread || tid < 0) {
+    /* If linked list of threads hasn't been initialized yet */
+    if (!head || tid < 0) {
         return NULL;
     }
     
-    /* start iterating through threads at the head */
-    current_thread = head_thread;
-    while(current_thread != NULL) {
-        
-        /* return the thread whose tid matches */
-        if (current_thread->tid == tid) {
-            return current_thread;
+    /* Iterate through linked list */
+    Node *temp  = head;
+    while(!temp) {
+        /* If we find the thread, return it */
+        if (temp->tid == tid) {
+            return temp;
         }
-        current_thread = current_thread->lib_one;
+        temp = temp->lib_one;
     }
     
-    /* if there are no threads with matching tid's, return NULL */
+    /* We reached the tail of the linked list without finding a valid thread */
     return NULL;
 }
