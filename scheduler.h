@@ -10,12 +10,8 @@ typedef struct Node {
     struct Node *next;
 } Node;
 
-static Node *head, *current;
-
-void init() {
-    /* Set head node and current node to be NULL */
-    head = current = NULL;
-}
+static Node *head = NULL;
+static Node *current = NULL;
 
 void admit(thread new) {
     /* Initialize linked list if it hasn't been initlialized yet */
