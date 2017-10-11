@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g -I .
+CFLAGS = -Wall -g 
 LD = gcc
 LDFLAGS = -Wall -g -L.
 
@@ -7,16 +7,11 @@ clean:
 	rm -f numbersmain.o *~ TAGS
 
 mynums: numbersmain.o liblwp.so
-	$(LD) $(LDFLAGS) -o mynums numbersmain.o -L. -lLWP
+	$(LD) $(LDFLAGS) -o mynums numbersmain.o -L. -llwp
 
 numbersmain.o: lwp.h 
 
-liblwp.so: lwp.c scheduler.h
-	gcc -Wall -g -fpic -c lwp.c
-	$(CC) -Wall -g -fpic -shared -o $@ lwp.o
-	rm lwp.o
-
-//libLWP.a: lwp.c scheduler.h
-	//gcc -c lwp.c
-	//ar r libLWP.a lwp.o
-	//rm lwp.o
+liblwp.so: lwp.c scheduler.h magic64.S 
+	$(CC) $(CFLAGS) -o magic64.o -c magic64.S
+	$(CC) $(CFLAGS) -fpic -c lwp.c 
+	$(CC) $(CFLAGS) -fpic -shared -o $@ lwp.o magic64.o 
