@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-scheduler rsched;
+static struct scheduler rsched = {NULL, NULL, &admit, &remove, &next};
 unsigned long thread_count = 0;
 
 tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
@@ -31,7 +31,7 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
     t->state.rsp = (unsigned long) sp;
 
     /* Send thread context to scheduler */
-    rsched->admit(t);
+    rsched.admit(t);
 
     /* return thread id */
     return t->tid;
@@ -50,20 +50,12 @@ void lwp_yield() {
 }
 
 void lwp_start() {
-    /* Initialize default scheduler */
-    rsched = malloc(sizeof(scheduler));
-    rsched->init = NULL;
-    rsched->shutdown = NULL;
-    rsched->admit = &admit;
-    rsched->remove = &remove;
-    rsched->next = &next;
+    // TODO
 }
 
 void lwp_stop() {
     // TODO
     // TODO : catch for if stop is called before start
-
-    free(rsched);
 }
 
 void lwp_set_scheduler(scheduler sched) {
