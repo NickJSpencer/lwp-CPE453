@@ -6,8 +6,8 @@
 
 static struct scheduler rsched = {NULL, NULL, &rr_admit, &rr_remove, &rr_next};
 static unsigned long thread_count = 0;
-static thread head= NULL;
-static thread current= NULL;
+static thread headThread = NULL;
+static thread currThread = NULL;
 
 tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
 
@@ -18,7 +18,7 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
     t->stacksize = size;
 
     /* Set up stack */
-    unsigned long *sp = t->stack + stacksize;
+    unsigned long *sp = t->stack + size;
     sp--;
     *sp = (unsigned long) lwp_exit; /* return address */
     sp--;
@@ -32,11 +32,11 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
     t->state.fxsave = FPU_INIT;
     
     /* Set up linked list of threads */
-    if (!head) {
-        head= t;
+    if (!headThread) {
+        headThread= t;
     }
     else {
-        thread *temp = head;
+        thread temp = headThread;
         while (!temp->lib_one) {
             temp = temp->lib_one;
         }
@@ -81,12 +81,12 @@ scheduler lwp_get_scheduler() {
 
 thread tid2thread(tid_t tid) {
     /* If linked list of threads hasn't been initialized yet */
-    if (!head || tid < 0) {
+    if (!headThread || tid < 0) {
         return NULL;
     }
     
     /* Iterate through linked list */
-    Node *temp  = head;
+    thread temp = headThread;
     while(!temp) {
         /* If we find the thread, return it */
         if (temp->tid == tid) {

@@ -6,7 +6,7 @@ LDFLAGS = -Wall -g -L.
 clean:
 	rm -f numbersmain.o *~ TAGS
 
-mynums: numbersmain.o libLWP.a
+mynums: numbersmain.o liblwp.so
 	$(LD) $(LDFLAGS) -o mynums numbersmain.o -L. -lLWP
 
 numbersmain.o: lwp.h 
