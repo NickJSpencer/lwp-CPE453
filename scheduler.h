@@ -5,32 +5,24 @@
 /* Default round-robin scheduler
  * Uses a linked list to keep track of threads */
 
-typedef struct Node {
-    thread t;
-    struct Node *next;
-} Node;
-
-static Node *head = NULL;
-static Node *current = NULL;
+static thread head = NULL;
+static thread current = NULL;
 
 void rr_admit(thread new) {
     /* Initialize linked list if it hasn't been initlialized yet */
-    if(!head) {
-        head = malloc(sizeof(Node));
-        head->t = new;
-        head->next = NULL;
-        return;
+    if (!head) {
+        head = new;
+        head->sched_one = NULL;
     }
 
     /* If the linked list has been initialized, create a new node
      * at the tail of the list */
-    Node *temp = head;
-    while(temp->next) {
-        temp = temp->next;
+    thread temp = head;
+    while(temp->sched_one) {
+        temp = temp->sched_one;
     }
-    temp->next = malloc(sizeof(Node));
-    temp->next->t = new;
-    temp->next->next = NULL;
+    temp->sched_one = new;
+    temp->sched_one->sched_one = NULL;
 }
 
 void rr_remove(thread victim) {
@@ -42,26 +34,26 @@ void rr_remove(thread victim) {
     }
 
     /* Catch for head collision */
-    if (head->t->tid == victim->tid) {
-        Node *temp = head->next;
+    if (head->tid == victim->tid) {
+        thread temp = head->sched_one;
         free(head);
         head = temp;
         return;
     }
 
     /* Iterate through the linked list */
-    Node *temp = head;
-    while (temp->next) {
+    thread temp = head;
+    while (temp->sched_one) {
         /* If we find the collision, delete the node and exit */
-        if (temp->next->t->tid == victim->tid) {
-            Node *next = temp->next->next;
-            free(temp->next);
-            temp->next = next;
+        if (temp->sched_one->tid == victim->tid) {
+            thread next = temp->sched_one->sched_one;
+            free(temp->sched_one);
+            temp->sched_one = next;
             break;
         }
 
         /* Otherwise continue iterating through the linked list */
-        temp = temp->next;
+        temp = temp->sched_one;
     }
 }
 
@@ -74,13 +66,13 @@ thread rr_next() {
     /* If a current node hasn't been set yet or if the current node is the
      * tail of the linked list, set current to the head of the linked
      * list */
-    if (!current || !current->next) {
+    if (!current || !current->sched_one) {
         current = head;
     }
     else {
-        current = current->next;
+        current = current->sched_one;
     }
 
-    return current->t;
+    return current;
 }
 

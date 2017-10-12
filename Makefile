@@ -1,22 +1,22 @@
 CC = gcc
-CFLAGS = -Wall -g -I .
+CFLAGS = -Wall -g 
 LD = gcc
 LDFLAGS = -Wall -g -L.
 
 clean:
-	rm -f numbersmain.o *~ TAGS
+	rm -f *.o *.so 
 
 mynums: numbersmain.o liblwp.so
-	$(LD) $(LDFLAGS) -o mynums numbersmain.o -L. -lLWP
+	$(LD) $(LDFLAGS) -o mynums numbersmain.o -llwp
 
-numbersmain.o: lwp.h 
+numbersmain.o: numbersmain.c liblwp.so
+	$(CC) $(CFLAGS) -g -c -o numbersmain.o numbersmain.c -llwp
+    
+liblwp.so: lwp.o magic64.o 
+	$(CC) $(CFLAGS) -fPIC -shared -o $@ lwp.o magic64.o
 
-liblwp.so: lwp.c scheduler.h
-	gcc -Wall -g -fpic -c lwp.c
-	$(CC) -Wall -g -fpic -shared -o $@ lwp.o
-	rm lwp.o
+lwp.o: lwp.c scheduler.h
+	$(CC) $(CFLAGS) -fpic -c -o lwp.o lwp.c
 
-//libLWP.a: lwp.c scheduler.h
-	//gcc -c lwp.c
-	//ar r libLWP.a lwp.o
-	//rm lwp.o
+magic64.o: magic64.S
+	$(CC) $(CFLAGS) -fpic -c -o magic64.o magic64.S
