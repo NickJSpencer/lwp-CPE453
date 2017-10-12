@@ -13,6 +13,8 @@ void rr_admit(thread new) {
     if (!head) {
         head = new;
         head->sched_one = NULL;
+        head->sched_two = NULL;
+        return;
     }
 
     /* If the linked list has been initialized, create a new node
@@ -21,8 +23,9 @@ void rr_admit(thread new) {
     while(temp->sched_one) {
         temp = temp->sched_one;
     }
+    new->sched_one = NULL;
+    new->sched_two = temp;
     temp->sched_one = new;
-    temp->sched_one->sched_one = NULL;
 }
 
 void rr_remove(thread victim) {
@@ -38,6 +41,9 @@ void rr_remove(thread victim) {
         thread temp = head->sched_one;
         free(head);
         head = temp;
+        if (head) {
+            head->sched_two = NULL;
+        }
         return;
     }
 
@@ -49,6 +55,9 @@ void rr_remove(thread victim) {
             thread next = temp->sched_one->sched_one;
             free(temp->sched_one);
             temp->sched_one = next;
+            if (next) {
+                next->sched_two = temp;
+            }
             break;
         }
 
