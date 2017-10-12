@@ -52,8 +52,24 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
     return t->tid;
 }
 
+static void exitHelper();
 void lwp_exit() {
-    // TODO : free stack
+    if (!headThread || !currentThread) {
+        lwp_stop(); // return?
+    }
+
+    SetSP(origRegs.rsp);
+    exitHelper();
+}
+
+static void exitHelper() {
+    free(currentThread->stack);
+    free(currentThread);
+    currentThread = rsched.next();
+    if(!currentThread) {
+        lwp_stop(); // return?
+    }
+    swap_rfiles(NULL, &currentThread->state);
 }
 
 tid_t lwp_gettid() {
