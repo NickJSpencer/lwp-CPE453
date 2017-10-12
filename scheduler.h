@@ -24,8 +24,10 @@ void rr_admit(thread new) {
         temp = temp->sched_one;
     }
     new->sched_one = NULL;
-    new->sched_two = temp;
-    temp->sched_one = new;
+    if (new != temp) {
+        new->sched_two = temp;
+        temp->sched_one = new;
+    }
 }
 
 void rr_remove(thread victim) {
@@ -34,23 +36,14 @@ void rr_remove(thread victim) {
         return;
     }
 
-    /* Catch for head collision */
-    if (head->tid == victim->tid) {
-        thread temp = head->sched_one;
-        head = temp;
-        if (head) {
-            head->sched_two = NULL;
-        }
-        return;
-    }
-
-    if (victim->sched_two && victim->sched_two != victim->sched_one) {
-        victim->sched_two->sched_one = victim->sched_one;
-    }
-    if (victim->sched_one && victim->sched_one != victim->sched_two) {
-        victim->sched_one->sched_two = victim->sched_two;
-    }
-
+//    /* Catch for head collision */
+//    if (head->tid == victim->tid) {
+//        head = head->sched_one;
+//        if (head) {
+//            head->sched_two = NULL;
+//        }
+//        return;
+//    }
 
     if (victim == current) {
         if(victim->sched_two) {
@@ -59,6 +52,18 @@ void rr_remove(thread victim) {
         else if (victim->sched_one) {
             current = victim->sched_one;
         }
+        else {
+            current = NULL;
+        }
+    }
+
+    if (victim->sched_two) {
+        victim->sched_two->sched_one = victim->sched_one;
+        victim->sched_one = NULL;
+    }
+    if (victim->sched_one) {
+        victim->sched_one->sched_two = victim->sched_two;
+        victim->sched_two = NULL;
     }
 
    // /* Iterate through the linked list */
