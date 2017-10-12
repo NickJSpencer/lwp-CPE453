@@ -5,7 +5,9 @@
 #include <stdio.h>
 
 static void exitHelper();
-static struct scheduler rsched = {NULL, NULL, &rr_admit, &rr_remove, &rr_next};
+static struct scheduler RoundRobin = {NULL, NULL, &rr_admit, &rr_remove, 
+                                                                    &rr_next};
+static scheduler rsched = &RoundRobin;
 static unsigned long threadCount = 0;
 static thread headThread = NULL;
 static thread currentThread = NULL;
@@ -14,10 +16,10 @@ static rfile origRegs;
 tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
 
     /* Create thread as local object */
-    thread t = malloc(sizeof(context));
+    thread t = calloc(1, sizeof(context));
     t->lib_one = NULL;
     t->tid = threadCount++;
-    t->stack = malloc(size*sizeof(unsigned long));
+    t->stack = calloc(size, sizeof(unsigned long));
     t->stacksize = size;
 
     /* Set up stack */
@@ -43,11 +45,13 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
         while (temp->lib_one) {
             temp = temp->lib_one;
         }
-        temp->lib_one = t;
+        if (t != temp) {
+            temp->lib_one = t;
+        }
     }
 
     /* Send thread context to scheduler */
-    rsched.admit(t);
+    rsched->admit(t);
  
     /* Return thread id */
     return t->tid;
@@ -58,7 +62,7 @@ void lwp_exit() {
         lwp_stop(); // return?
     }
     
-    rsched.remove(currentThread);
+    rsched->remove(currentThread);
     SetSP(origRegs.rsp);
     exitHelper();
 }
@@ -66,7 +70,7 @@ void lwp_exit() {
 static void exitHelper() {
     free(currentThread->stack);
     free(currentThread);
-    currentThread = rsched.next();
+    currentThread = rsched->next();
     if(!currentThread) {
         lwp_stop(); // return?
     }
@@ -79,7 +83,7 @@ tid_t lwp_gettid() {
 
 void lwp_yield() {
     thread temp = currentThread;
-    currentThread = rsched.next();
+    currentThread = rsched->next();
     if (!currentThread) {
         lwp_stop();
     }
@@ -87,7 +91,7 @@ void lwp_yield() {
 }
 
 void lwp_start() {
-    thread next = rsched.next();
+    thread next = rsched->next();
     if (next) {
         currentThread = next;
         swap_rfiles(&origRegs, &next->state);
@@ -95,15 +99,40 @@ void lwp_start() {
 }
 
 void lwp_stop() {
-    swap_rfiles(NULL, &origRegs);
+    if (currentThread) {
+        swap_rfiles(&currentThread->state, &origRegs);
+    }
+    else {
+        swap_rfiles(NULL, &origRegs);
+    }
+
 }
 
 void lwp_set_scheduler(scheduler sched) {
-    // TODO
+    if (!sched) {
+        return;
+    }
+
+    if (sched->init) {
+        sched->init();
+    }
+
+    thread t = rsched->next();
+    while(t) {
+        sched->admit(t);
+        rsched->remove(t);
+        t = rsched->next();
+    }
+
+    if (rsched->shutdown) {
+        rsched->shutdown();
+    }
+
+    rsched = sched;
 }
 
 scheduler lwp_get_scheduler() {
-    // TODO
+    return rsched;
 }
 
 thread tid2thread(tid_t tid) {
