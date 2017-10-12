@@ -29,8 +29,6 @@ void rr_admit(thread new) {
 }
 
 void rr_remove(thread victim) {
-    /* TODO : catch for if victim == current? */
-
     /* If head hasn't been initialized yet, just return */
     if (!head) {
         return;
@@ -46,22 +44,39 @@ void rr_remove(thread victim) {
         return;
     }
 
-    /* Iterate through the linked list */
-    thread temp = head;
-    while (temp->sched_one) {
-        /* If we find the collision, delete the node and exit */
-        if (temp->sched_one->tid == victim->tid) {
-            thread next = temp->sched_one->sched_one;
-            temp->sched_one = next;
-            if (next) {
-                next->sched_two = temp;
-            }
-            break;
-        }
-
-        /* Otherwise continue iterating through the linked list */
-        temp = temp->sched_one;
+    if (victim->sched_two && victim->sched_two != victim->sched_one) {
+        victim->sched_two->sched_one = victim->sched_one;
     }
+    if (victim->sched_one && victim->sched_one != victim->sched_two) {
+        victim->sched_one->sched_two = victim->sched_two;
+    }
+
+
+    if (victim == current) {
+        if(victim->sched_two) {
+            current = victim->sched_two;
+        }
+        else if (victim->sched_one) {
+            current = victim->sched_one;
+        }
+    }
+
+   // /* Iterate through the linked list */
+   // thread temp = head;
+   // while (temp->sched_one) {
+   //     /* If we find the collision, delete the node and exit */
+   //     if (temp->sched_one->tid == victim->tid) {
+   //         thread next = temp->sched_one->sched_one;
+   //         temp->sched_one = next;
+   //         if (next) {
+   //             next->sched_two = temp;
+   //         }
+   //         break;
+   //     }
+
+   //     /* Otherwise continue iterating through the linked list */
+   //     temp = temp->sched_one;
+   // }
 }
 
 thread rr_next() {

@@ -119,8 +119,8 @@ void lwp_set_scheduler(scheduler sched) {
 
     thread t = rsched->next();
     while(t) {
-        sched->admit(t);
         rsched->remove(t);
+        sched->admit(t);
         t = rsched->next();
     }
 
