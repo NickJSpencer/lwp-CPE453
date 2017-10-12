@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static void exitHelper();
 static struct scheduler rsched = {NULL, NULL, &rr_admit, &rr_remove, &rr_next};
 static unsigned long threadCount = 0;
 static thread headThread = NULL;
@@ -52,12 +53,12 @@ tid_t lwp_create(lwpfun fun, void *arg, size_t size) {
     return t->tid;
 }
 
-static void exitHelper();
 void lwp_exit() {
     if (!headThread || !currentThread) {
         lwp_stop(); // return?
     }
-
+    
+    rsched.remove(currentThread);
     SetSP(origRegs.rsp);
     exitHelper();
 }
@@ -94,8 +95,7 @@ void lwp_start() {
 }
 
 void lwp_stop() {
-    // TODO
-    // TODO : catch for if stop is called before start
+    swap_rfiles(NULL, &origRegs);
 }
 
 void lwp_set_scheduler(scheduler sched) {

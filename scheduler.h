@@ -39,7 +39,6 @@ void rr_remove(thread victim) {
     /* Catch for head collision */
     if (head->tid == victim->tid) {
         thread temp = head->sched_one;
-        free(head);
         head = temp;
         if (head) {
             head->sched_two = NULL;
@@ -53,7 +52,6 @@ void rr_remove(thread victim) {
         /* If we find the collision, delete the node and exit */
         if (temp->sched_one->tid == victim->tid) {
             thread next = temp->sched_one->sched_one;
-            free(temp->sched_one);
             temp->sched_one = next;
             if (next) {
                 next->sched_two = temp;
