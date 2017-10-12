@@ -87,7 +87,7 @@ void lwp_set_scheduler(scheduler sched) {
 }
 
 scheduler lwp_get_scheduler() {
-    return rsched;
+    // TODO
 }
 
 thread tid2thread(tid_t tid) {
